@@ -1,0 +1,4 @@
+cffi==1.17.1
+pycparser==2.22
+python-snap7==2.0.0
+socketify==0.0.28
