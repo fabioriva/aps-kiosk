@@ -1,4 +1,5 @@
 from Plc import Plc
+from Rfid import Rfid
 from snap7 import Area
 from socketify import App, AppOptions, OpCode, CompressOptions
 from threading import Thread
@@ -24,7 +25,6 @@ def release_button(res, req):
     plc.write(Area.DB, 37, 15, bytearray([0]))
     res.end({"message": "release button"})
 
-
 def ws_open(ws):
     print('A WebSocket got connected!')
     # ws.send("Hello World!", OpCode.TEXT)
@@ -37,7 +37,7 @@ def ws_message(ws, message, opcode):
     ws.publish(PATH, message, opcode)
 
 
-def make_app(app, plc):
+def make_app(app, plc, rfid):
     app.ws("/*", {
         'compression': CompressOptions.SHARED_COMPRESSOR,
         'max_payload_length': 16 * 1024 * 1024,
@@ -54,12 +54,16 @@ def make_app(app, plc):
     # S7 comm
     thread = Thread(target=plc.run, daemon=True)
     thread.start()
+    # Mfrc522
+    thread_rfid = Thread(target=rfid.read, daemon=True)
+    thread_rfid.start()
 
 
 if __name__ == "__main__":
     app = App()
     plc = Plc(app)
-    make_app(app, plc)
+    rfid = Rfid(plc)
+    make_app(app, plc, rfid)
     app.listen(PORT, lambda config: print(
         "Listening on port http://localhost:%d now\n" % (config.port)))
     app.run()
