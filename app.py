@@ -34,7 +34,7 @@ def ws_open(ws):
 def ws_message(ws, message, opcode):
     # Ok is false if backpressure was built up, wait for drain
     # ok = ws.send(message, opcode)
-    ws.publish(CHANNEL, message, opcode)
+    ws.publish(PATH, message, opcode)
 
 
 def make_app(app, plc):
