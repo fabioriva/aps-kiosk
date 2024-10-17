@@ -60,7 +60,7 @@ def make_app(app, plc, rfid):
     })
     app.get(PATH + "/press", log(press_button))
     app.get(PATH + "/unpress", log(release_button))
-    app.post(PATH + "/pin", log(pin))
+    app.post(PATH + "/pin", pin)
     app.any("/*", log(lambda res, req: res.write_status(404).end("Not Found")))
     # S7 comm
     thread = Thread(target=plc.run, daemon=True)
