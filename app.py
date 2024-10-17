@@ -3,6 +3,7 @@ from Rfid import Rfid
 from snap7 import Area
 from socketify import App, AppOptions, OpCode, CompressOptions
 from threading import Thread
+from time import sleep
 
 PATH = "/api/kiosk"
 PORT = 9999
@@ -24,6 +25,7 @@ def press_button(res, req):
 def release_button(res, req):
     plc.write(Area.DB, 37, 15, bytearray([0]))
     res.end({"message": "release button"})
+
 
 def ws_open(ws):
     print('A WebSocket got connected!')
@@ -54,7 +56,7 @@ def make_app(app, plc, rfid):
     # S7 comm
     thread = Thread(target=plc.run, daemon=True)
     thread.start()
-    # Mfrc522
+    # MFRC522 rfid
     thread_rfid = Thread(target=rfid.read, daemon=True)
     thread_rfid.start()
 

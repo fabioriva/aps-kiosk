@@ -14,6 +14,7 @@ class Plc():
         self.app = app
         self.client = snap7.client.Client()
         self.online = False
+        self.data = dict()
 
     def connect(self):
         try:
@@ -54,18 +55,18 @@ class Plc():
 
     def run(self):  # , f):
         self.connect()
-        data = dict()
         while 1:
             if (self.online):
-                data = self.read(37, 2, 12)
+                self.data = self.read(37, 2, 12)
                 # watchdog DB37.DBX14.0
                 self.write(snap7.Area.DB, 37, 14, bytearray([0b00000001]))
             else:
-                data = dict(comm=False, lang=0, page=0, card=0,
-                            digitNr=0, errMesg=0, succesMsg=0)
+                self.data = dict(comm=False, lang=0, page=0, card=0,
+                                 digitNr=0, errMesg=0, succesMsg=0)
                 self.connect()
                 print(
                     "Connected to PLC %s" % IP if self.online else "Connecting to PLC %s...." % IP)
 
-            self.app.publish(CHANNEL, data, opcode=OpCode.TEXT, compress=False)
+            self.app.publish(CHANNEL, self.data,
+                             opcode=OpCode.TEXT, compress=False)
             time.sleep(POLL)
