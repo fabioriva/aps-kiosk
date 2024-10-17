@@ -1,4 +1,7 @@
 cffi==1.17.1
+mfrc522==0.0.7
 pycparser==2.22
 python-snap7==2.0.0
+RPi.GPIO==0.7.1
 socketify==0.0.28
+spidev==3.6
