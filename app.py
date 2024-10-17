@@ -1,9 +1,22 @@
 from Plc import Plc
 from Rfid import Rfid
 from snap7 import Area
-from socketify import App, AppOptions, OpCode, CompressOptions
+from socketify import App, CompressOptions
 from threading import Thread
 from time import sleep
+import logging
+
+logging.basicConfig(
+    format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO)
+
+
+def log(handler):
+    def devlog_route(res, req):
+        logging.info(
+            f'{req.get_method()} {req.get_full_url()} {req.get_headers()=}')
+        handler(res, req)
+    return devlog_route
+
 
 PATH = "/api/kiosk"
 PORT = 9999
@@ -28,14 +41,10 @@ def release_button(res, req):
 
 
 def ws_open(ws):
-    print('A WebSocket got connected!')
-    # ws.send("Hello World!", OpCode.TEXT)
     ws.subscribe(PATH + '/info')
 
 
 def ws_message(ws, message, opcode):
-    # Ok is false if backpressure was built up, wait for drain
-    # ok = ws.send(message, opcode)
     ws.publish(PATH, message, opcode)
 
 
@@ -46,13 +55,13 @@ def make_app(app, plc, rfid):
         'idle_timeout': 0,
         'open': ws_open,
         'message': ws_message,
-        'drain': lambda ws: print('WebSocket backpressure: %i' % ws.get_buffered_amount()),
-        'close': lambda ws, code, message: print('WebSocket closed')
+        'drain': lambda ws: logging.info('WebSocket backpressure: %i' % ws.get_buffered_amount()),
+        'close': lambda ws, code, message: logging.info('WebSocket closed')
     })
-    app.get(PATH + "/press", press_button)
-    app.get(PATH + "/unpress", release_button)
-    app.post(PATH + "/pin", pin)
-    app.any("/*", lambda res, req: res.write_status(404).end("Not Found"))
+    app.get(PATH + "/press", log(press_button))
+    app.get(PATH + "/unpress", log(release_button))
+    app.post(PATH + "/pin", log(pin))
+    app.any("/*", log(lambda res, req: res.write_status(404).end("Not Found")))
     # S7 comm
     thread = Thread(target=plc.run, daemon=True)
     thread.start()
@@ -66,6 +75,6 @@ if __name__ == "__main__":
     plc = Plc(app)
     rfid = Rfid(plc)
     make_app(app, plc, rfid)
-    app.listen(PORT, lambda config: print(
+    app.listen(PORT, lambda config: logging.info(
         "Listening on port http://localhost:%d now\n" % (config.port)))
     app.run()

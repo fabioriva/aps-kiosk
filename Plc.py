@@ -1,6 +1,11 @@
+import logging
 import snap7
 import time
 from socketify import OpCode
+
+logging.basicConfig(
+    format='%(asctime)s [%(levelname)s] %(message)s', level=logging.INFO)
+logging.getLogger(__name__)
 
 CHANNEL = "/api/kiosk/info"
 IP = "192.168.20.55"
@@ -24,9 +29,9 @@ class Plc():
             self.err(e)
 
     def err(self, err):
-        print("exception error:", err)
+        # logging.error(f'exception error: {err}')
         e = self.client.get_last_error()
-        print("snap7 error:", e, self.client.error_text(e))
+        logging.error(f'snap7 error: {e} {self.client.error_text(e)}')
         self.online = self.client.disconnect()
 
     def read(self, db, start, size):
@@ -64,7 +69,7 @@ class Plc():
                 self.data = dict(comm=False, lang=0, page=0, card=0,
                                  digitNr=0, errMesg=0, succesMsg=0)
                 self.connect()
-                print(
+                logging.info(
                     "Connected to PLC %s" % IP if self.online else "Connecting to PLC %s...." % IP)
 
             self.app.publish(CHANNEL, self.data,
