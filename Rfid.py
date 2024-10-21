@@ -16,21 +16,22 @@ class Rfid():
         self.plc = plc
         self.reader = SimpleMFRC522()
 
-    def read(self):
+    def run(self):
         try:
             while 1:
-                id, text = self.reader.read()
-                logging.info(f'Tag ID {id}, Data: {text}')
-                buf = bytearray(id.to_bytes(6, byteorder='big'))
-                self.plc.write(Area.DB, 37, 18, buf)
+                self.read()
                 sleep(0.5)
         except KeyboardInterrupt:
             GPIO.cleanup()
-
-    def write(self, text):
-        try:
-            self.reader.write(text)
-            logging.info(f'Tag written: {text}')
-
         finally:
             GPIO.cleanup()
+
+    def read(self):
+        id, text = self.reader.read()
+        logging.info(f'Tag ID {id}, Data: {text}')
+        buf = bytearray(id.to_bytes(6, byteorder='big'))
+        self.plc.write(Area.DB, 37, 18, buf)
+
+    def write(self, text):
+        self.reader.write(text)
+        logging.info(f'Tag written: {text}')

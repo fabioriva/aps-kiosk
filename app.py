@@ -66,7 +66,7 @@ def make_app(app, plc, rfid):
     thread = Thread(target=plc.run, daemon=True)
     thread.start()
     # MFRC522 rfid
-    thread_rfid = Thread(target=rfid.read, daemon=True)
+    thread_rfid = Thread(target=rfid.run, daemon=True)
     thread_rfid.start()
 
 
